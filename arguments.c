@@ -19,9 +19,11 @@
 
 char psz_video_dev[MAX_LEN_VIDEO_DEV];
 char psz_output_dir[MAX_LEN_OUTDIR];
+char psz_output_filename[MAX_LEN_FILENAME];
 char psz_named_pipe[MAX_LEN_NAMEDPIPE];
 int b_verbose = 0,
     b_printinfo = 0,
+    b_named_filename = 0,
     b_named_pipe = 0,
     b_shared_mem = 0;
 
@@ -41,6 +43,7 @@ static void print_help(int argc, char **argv)
 	printf("\t--help\t\t-h\tPrints this help.\n");
 	printf("\t--device dev\t-d dev\tWorks with the dev device (default /dev/video0)\n");
 	printf("\t--outdir dir\t-o dir\tSaves all output in dir (default /tmp)\n");
+	printf("\t--save filename\t-n filename\tSave image directly\n");
 	printf("\t--format fmt\t-f fmt\tSaves images in the fmt format (see below)\n");
     printf("\t--info\t\t-i\tPrints info about the video device and stops.\n");
     printf("\t--width num\t-W num\tSets the desired width (if the camera supports it)\n");
@@ -65,6 +68,7 @@ int process_arguments(int argc, char **argv)
 	/* set the default values */
 	strncpy(psz_video_dev, DEFAULT_VIDEO_DEV, MAX_LEN_VIDEO_DEV);
 	strncpy(psz_output_dir, DEFAULT_OUTDIR, MAX_LEN_OUTDIR);
+	strncpy(psz_output_filename, DEFAULT_OUTPUT_FILENAME, MAX_LEN_FILENAME);
 	e_outfmt = FORMAT_BMP;
 	strncpy(str_formats[FORMAT_JPG], "jpg", STR_FORMAT_LEN);
 	strncpy(str_formats[FORMAT_PNG], "png", STR_FORMAT_LEN);
@@ -81,6 +85,7 @@ int process_arguments(int argc, char **argv)
 			{"help", no_argument, NULL, 'h'},
 			{"device", required_argument, NULL, 'd'},
 			{"outdir", required_argument, NULL, 'o'},
+			{"save", required_argument, NULL, 'n'},
 			{"verbose", no_argument, NULL, 'v'},
 			{"format", required_argument, NULL, 'f'},
             {"info", no_argument, NULL, 'i'},
@@ -91,7 +96,7 @@ int process_arguments(int argc, char **argv)
 			{0,0,0,0}
 		};
 
-		int current_opt = getopt_long(argc, argv, "hd:o:vf:iW:H:p:s:", opts, NULL);
+		int current_opt = getopt_long(argc, argv, "hd:o:n:vf:iW:H:p:s:", opts, NULL);
 
 		switch(current_opt)
 		{
@@ -104,6 +109,10 @@ int process_arguments(int argc, char **argv)
 				break;
 			case 'o':
 				strncpy(psz_output_dir, optarg, MAX_LEN_OUTDIR);
+				break;
+			case 'n':
+				strncpy(psz_output_filename, optarg, MAX_LEN_FILENAME);
+                b_named_filename = 1;
 				break;
 			case 'v':
 				b_verbose = 1;

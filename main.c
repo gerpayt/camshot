@@ -23,6 +23,8 @@ TODO
 #define _XOPEN_SOURCE
 #endif
 
+#define _BSD_SOURCE
+
 #include <stdio.h>
 #include <unistd.h>
 #include <getopt.h>
@@ -89,7 +91,11 @@ int main(int argc, char **argv)
 		printf("Image format:\t\t%s\n",str_formats[e_outfmt]);
 		printf("\n");
 		printf("Opening device %s\n", psz_video_dev);
-        if( b_named_pipe )
+        if( b_named_filename )
+        {
+            printf("Ouput filename:\t%s\n", psz_output_filename);
+        }
+        else if( b_named_pipe )
         {
             printf("Using named pipe %s\n", psz_named_pipe);
         }
@@ -196,6 +202,18 @@ int main(int argc, char **argv)
     else
     {
         pthread_create(&capture_thread, NULL, &capture_func, NULL);
+    }
+
+    if( b_named_filename )
+    {
+        usleep(200000);
+        pthread_mutex_lock(&cond_mutex);
+        pthread_cond_signal(&condition);
+        pthread_mutex_unlock(&cond_mutex);
+        usleep(200000);
+        exit_program(SIGINT);
+        fflush(stdout);
+        return 0;
     }
 
     while( in_str[0] != 'q' )
@@ -330,7 +348,11 @@ void *capture_func(void *ptr)
         /* make the image */
 
         /* create the file name */
-        if( !b_named_pipe )
+        if( b_named_filename )
+        {
+            sprintf(cur_name, "%s%s", psz_output_dir, psz_output_filename);
+        }
+        else if( !b_named_pipe )
             sprintf(cur_name, "%scamshot_%lu.bmp", psz_output_dir, timestamp.tv_sec);
         else
             sprintf(cur_name, "%s", psz_named_pipe);
